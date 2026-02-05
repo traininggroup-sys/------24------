@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>اختبار إلكتروني</title>
+    <style>
+      :root {
+        direction: rtl;
+        writing-mode: horizontal-tb;
+        text-orientation: mixed;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        direction: rtl;
+        font-weight: 900;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-user-select: none; /* Chrome/Safari */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE/Edge */
+        user-select: none; /* Standard */
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      #login-container {
+        max-width: 400px;
+        margin: 100px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border: 2px solid #007bff;
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(0, 123, 255, 0.2);
+        text-align: center;
+        transition: all 0.3s ease-in-out;
+      }
+
+      #login-container label {
+        display: block;
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 8px;
+        text-align: right;
+      }
+
+      #login-container input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+      }
+
+      #login-container button {
+        width: 100%;
+        background-color: #007bff;
+        color: white;
+        padding: 12px 0;
+        font-size: 18px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      #login-container button:hover {
+        background-color: #0056b3;
+      }
+
+      #result {
+        margin-top: 20px;
+        text-align: right;
+      }
+
+      #timer {
+        font-size: 20px;
+        color: red;
+        font-weight: bold;
+      }
+
+      h2 {
+        font-size: 22px;
+        font-weight: 900;
+        color: #000000;
+      }
+
+      label {
+        font-size: 18px;
+        font-weight: 900;
+        color: #333333;
+      }
+
+      #next-button {
+        position: absolute;
+        left: 20px;
+        bottom: 20px;
+        padding: 10px 20px;
+        font-weight: 900;
+      }
+
+      .correct-answer {
+        color: green;
+        font-weight: 900;
+      }
+
+      .wrong-answer {
+        color: red;
+        font-weight: 900;
+      }
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      ul li {
+        margin-bottom: 15px;
+        background-color: #f0f4f8;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 900;
+        color: #000;
+        font-size: 18px;
+      }
+
+      #result h2,
+      #result h3,
+      #result p {
+        font-weight: 900;
+        color: #000;
+        font-size: 18px;
+        text-align: right;
+      }
+
+      #retry-button {
+        padding: 10px 20px;
+        font-weight: bold;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>التدريب علي اختبارات الجهاز المركزى</h2>
+
+    <div id="login-container">
+      <label for="password">🔒 أدخل كلمة المرور:</label>
+      <input id="password" type="password" placeholder="مثال: 12345678" />
+      <label for="duration">⏳ حدد مدة الاختبار (بالدقائق):</label>
+      <input id="duration" type="number" value="15" min="1" />
+      <button onclick="checkPassword()">🚀 دخول</button>
+    </div>
+
+    <div class="hidden" id="quiz">
+      <div id="timer">15:00</div>
+      <div id="question-info">السؤال 1 من 50</div>
+      <form id="quizForm">
+        <div id="question-container"></div>
+        <button id="next-button" onclick="nextQuestion(event)" type="button">
+          التالي
+        </button>
+      </form>
+    </div>
+
+    <div class="hidden" id="result"></div>
+
+    <script>
+      const questions = [
+        {
+          question: "المعلم الذى يحتوى طلابه ويخفض لهم جناحه يتميز بـ؟",
+          options: ["القسوة", "التكبر", "الصبر والتواضع", "الإهمال"],
+          answer: "الصبر والتواضع",
+        },
+        {
+          question: "الأسئلة التي تتميز بالصدق والثبات تسمى؟",
+          options: ["الأسئلة المقالية", "الأسئلة الموضوعية", "الأسئلة الشفوية"],
+          answer: "الأسئلة الموضوعية",
+        },
+        {
+          question: "أي نوع من الأسئلة يعتمد على التخمين وتكون إجاباته قصيرة؟",
+          options: ["أكمل", "المقالية", "بحثي", "مشروع"],
+          answer: "أكمل",
+        },
+        {
+          question: "البرتفيلوم بيقيم؟",
+          options: ["المعلم", "المتعلم"],
+          answer: "المتعلم",
+        },
+        {
+          question:
+            "الصفة التي يجب أن تتوفر في المعلم ليتمكن من احتواء التلاميذ في مرحلة المراهقة هي؟",
+          options: ["سرعة البديهة", "الصبر", "الشدة الزائدة", "التساهل المطلق"],
+          answer: "الصبر",
+        },
+        {
+          question: "الفروق الفردية بين التلاميذ تؤثر بدرجة أكبر في؟",
+          options: [
+            "الانضباط المدرسي",
+            "العلاقات الاجتماعية",
+            "التحصيل الدراسي",
+            "عدد الحصص",
+          ],
+          answer: "التحصيل الدراسي",
+        },
+        {
+          question: "الأهداف السلوكية تعد من الأهداف؟",
+          options: ["طويلة المدى", "عامة", "قصيرة المدى", "غير قابلة للقياس"],
+          answer: "قصيرة المدى",
+        },
+        {
+          question: "أكثر فئة تحتاج إلى اهتمام خاص من المعلم داخل الفصل هي؟",
+          options: [
+            "المتأخرون دراسياً",
+            "الموهوبين",
+            "ذوو صعوبات التعلم",
+            "جميع التلاميذ",
+          ],
+          answer: "ذوو صعوبات التعلم",
+        },
+        {
+          question: "صعوبات التعلم للطفل تُعرف من أي سن؟",
+          options: ["6 سنوات", "7 سنوات", "9 سنوات", "10 سنوات"],
+          answer: "6 سنوات",
+        },
+        {
+          question: "النمو السريع يكون في أي مرحلة؟",
+          options: [
+            "الطفولة المبكرة",
+            "الطفولة المتأخرة",
+            "المراهقة المبكرة",
+            "المراهقة المتأخرة",
+          ],
+          answer: "الطفولة المبكرة",
+        },
+        {
+          question: "الخوف من الأماكن المفتوحة يسمى؟",
+          options: ["هيدرونوفوبيا", "كلستروفوبيا", "أجورافوبيا", "سوسيوفوبيا"],
+          answer: "أجورافوبيا",
+        },
+        {
+          question: "العملية التعليمية تشمل ما يلي ما عدا؟",
+          options: ["المعلم", "المتعلم", "المحتوى", "المدرسة"],
+          answer: "المدرسة",
+        },
+        {
+          question:
+            "متوسط مدة انتباه الطفل أثناء النشاط التعليمي تبلغ تقريباً؟",
+          options: [
+            "3 إلى 5 دقائق",
+            "6 إلى 8 دقائق",
+            "10 إلى 12 دقيقة",
+            "20 إلى 25 دقيقة",
+          ],
+          answer: "10 إلى 12 دقيقة",
+        },
+        {
+          question: "الغدة التي تساعد على نمو الطفل هي؟",
+          options: ["الغدة النخامية", "الغدة الكظرية", "الغدة التيموسية"],
+          answer: "الغدة النخامية",
+        },
+        {
+          question: "المتغير الذي يتحكم فيه الباحث ويغيره هو؟",
+          options: ["المتغير المستقل", "المتغير التابع", "المتغير الدخيل"],
+          answer: "المتغير المستقل",
+        },
+        {
+          question: "الأسئلة للأميين والأكفاء تكون؟",
+          options: ["لفظية", "غير لفظية"],
+          answer: "لفظية",
+        },
+        {
+          question: "الصفة التي تتوفر في المعلم ليحتوي التلاميذ في الفصل؟",
+          options: ["الإهمال", "القسوة", "الصبر والتواضع"],
+          answer: "الصبر والتواضع",
+        },
+        {
+          question:
+            "إذا كان هناك طفل يشعر بالغيرة من طفل آخر في الفصل، فما الدور التربوي الصحيح للمعلم؟",
+          options: [
+            "إعطاء الطفل الغيور هدايا",
+            "تجاهل الموقف",
+            "مساعدة الطفل وتوجيهه تربوياً",
+          ],
+          answer: "مساعدة الطفل وتوجيهه تربوياً",
+        },
+        {
+          question: "أي من المقاييس التالية غير مناسب مع الطالب؟",
+          options: [
+            "المقياس الرتبي",
+            "المقياس النسبي",
+            "المقياس الرقمي",
+            "المقياس الاسمي",
+          ],
+          answer: "المقياس الاسمي",
+        },
+        {
+          question:
+            "التقويم الذي يشمل التلاميذ والمناهج والمباني والإداريين هو تقويم؟",
+          options: ["معلم", "منهج", "تلميذ", "مدرسة"],
+          answer: "مدرسة",
+        },
+        {
+          question: "في أي مرحلة يُستخدم الاختبار الشكلي (غير اللفظي)؟",
+          options: [
+            "الجامعة",
+            "الثانوية العامة",
+            "رياض الأطفال",
+            "الطفولة المتأخرة",
+          ],
+          answer: "رياض الأطفال",
+        },
+        {
+          question:
+            "في أي مرحلة من مراحل النمو النفسي الاجتماعي يظهر مبدأ الإنجاز مقابل الشعور بالنقص؟",
+          options: ["الطفولة المبكرة", "الطفولة المتأخرة", "الرشد"],
+          answer: "الطفولة المتأخرة",
+        },
+        {
+          question: "العقاب السلبي هو إزالة شيء مرغوب فيه بعد سلوك؟",
+          options: ["غير مرغوب فيه", "مرغوب فيه"],
+          answer: "غير مرغوب فيه",
+        },
+        {
+          question: "الإدارة الصفية من العوامل الفيزيقية؟",
+          options: ["صح", "خطأ"],
+          answer: "خطأ",
+        },
+        {
+          question:
+            "الفهم المفاجئ للعلاقات بين عناصر المشكلة والوصول للحل فجأة يسمى؟",
+          options: ["تعليم", "تعلم", "استبصار", "قياس"],
+          answer: "استبصار",
+        },
+        {
+          question: "الجزء الأخلاقي من الشخصية عند فرويد هو؟",
+          options: ["الأنا", "الأنا الأعلى", "الهو"],
+          answer: "الأنا الأعلى",
+        },
+        {
+          question: "لماذا تستطيع البنات الإمساك بالأشياء الدقيقة قبل الأولاد؟",
+          options: [
+            "بسبب نمو الفص الأيسر المرتبط بالمهارات الحركية الدقيقة واللغة  ",
+            "بسبب نمو الفص الأيمن",
+          ],
+          answer:
+            "بسبب نمو الفص الأيسر المرتبط بالمهارات الحركية الدقيقة واللغة  ",
+        },
+        {
+          question:
+            "العالم الذي اهتم بدراسة نمو الطفل من حيث الحركة والعدد والمساحة هو؟",
+          options: ["إريكسون", "بياجيه", "أدلر", "فرويد"],
+          answer: "بياجيه",
+        },
+        {
+          question: "الجانب النفسي يشمل الاحتياجات؟",
+          options: ["النفسية", "التعليمية", "التربوية"],
+          answer: "التربوية",
+        },
+        {
+          question: "الجانب التربوي يعمل على إشباع احتياجات المتعلم؟",
+          options: [
+            "نفسياً وتعليمياً وتربوياً",
+            "نفسياً وجسدياً وتعليمياً",
+            "اجتماعياً واقتصادياً وصحياً",
+          ],
+          answer: "نفسياً وتعليمياً وتربوياً",
+        },
+        {
+          question: "النظرية التي تعتمد على المعرفة السابقة للطالب هي؟",
+          options: ["السلوكية", "المعرفية", "البنائية", "التحليل النفسي"],
+          answer: "البنائية",
+        },
+        {
+          question: "التصرف التربوي الصحيح مع طالب يضرب زميله هو؟",
+          options: ["عقاب إيجابي", "عقاب سلبي", "إبعاد مؤقت", "تأديب ذاتي"],
+          answer: "إبعاد مؤقت",
+        },
+        {
+          question: "متوسط شرح المعلم يجب أن يكون في مستوى الطالب؟",
+          options: ["المتوسط", "الضعيف", "الممتاز"],
+          answer: "المتوسط",
+        },
+        {
+          question: "من المشاكل التي تدل على خوف حقيقي؟",
+          options: [
+            "مشاكل النطق والكلام",
+            "مشاكل الخوف",
+            "مشاكل القلق",
+            "مشاكل التحصيل الدراسي",
+          ],
+          answer: "مشاكل الخوف",
+        },
+        {
+          question: "ما الذي يؤثر في التعليم؟",
+          options: ["الدافعية", "التعزيز"],
+          answer: "التعزيز",
+        },
+        {
+          question: "العوامل التي تؤثر في النمو هي؟",
+          options: ["الوراثة", "البيئة", "التغذية", "جميع ما سبق"],
+          answer: "جميع ما سبق",
+        },
+        {
+          question: "أي مما يلي يثبت عادة خلال سن المراهقة؟",
+          options: ["الطول", "الوزن", "الصوت", "لون العين"],
+          answer: "الصوت",
+        },
+        {
+          question:
+            "طفل ذكاؤه عادي ويعاني من صعوبة في القراءة والكتابة رغم التدريب الكافي يعاني من؟",
+          options: [
+            "التأخر الدراسي",
+            "صعوبات التعلم",
+            "التأخر العقلي",
+            "الكسل الدراسي",
+          ],
+          answer: "صعوبات التعلم",
+        },
+        {
+          question:
+            "طفل يقل مستواه الدراسي عن أقرانه بسبب عوامل أسرية أو بيئية يصنف ضمن؟",
+          options: [
+            "صعوبات التعلم",
+            "التأخر العقلي",
+            "التأخر الدراسي",
+            "بطء التعلم",
+          ],
+          answer: "التأخر الدراسي",
+        },
+        {
+          question:
+            "في مرحلة الطفولة المبكرة تكون المفردات اللغوية عند البنات مقارنة بالأولاد؟",
+          options: ["أقل", "أكبر/أكثر", "متساوية"],
+          answer: "أكبر/أكثر",
+        },
+      ];
+
+      let currentQuestion = 0;
+      let score = 0;
+      let timer;
+      let timeLeft;
+      let userAnswers = [];
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      function shuffleQuestions() {
+        shuffle(questions);
+        questions.forEach((q) => shuffle(q.options));
+      }
+
+      function checkPassword() {
+        const passwordInput = document.getElementById("password").value;
+        const durationInput =
+          parseInt(document.getElementById("duration").value) || 10;
+        timeLeft = durationInput * 60;
+
+        if (passwordInput === "50006") {
+          shuffleQuestions();
+          document.getElementById("login-container").classList.add("hidden");
+          document.getElementById("quiz").classList.remove("hidden");
+          document.getElementById("result").classList.add("hidden");
+          currentQuestion = 0;
+          score = 0;
+          userAnswers = [];
+          loadQuestion();
+          startTimer();
+        } else {
+          alert("🚫 المحاولة غير صحيحة! تأكد من كتابة كلمة السر بشكل دقيق.");
+        }
+      }
+
+      function loadQuestion() {
+        const questionContainer = document.getElementById("question-container");
+        questionContainer.innerHTML = `
+      <h2>${questions[currentQuestion].question}</h2>
+      ${questions[currentQuestion].options
+        .map(
+          (option) => `
+        <label>
+          <input type="radio" name="option" value="${option}" />
+          ${
+            option === questions[currentQuestion].answer
+              ? `<span class="correct">${option}</span>`
+              : option
+          }
+        </label><br>
+      `,
+        )
+        .join("")}
+    `;
+        document.getElementById("question-info").textContent = `السؤال ${
+          currentQuestion + 1
+        } من ${questions.length}`;
+      }
+
+      function nextQuestion(event) {
+        event.preventDefault();
+        const selected = document.querySelector('input[name="option"]:checked');
+        if (!selected) return alert("اختر إجابة.");
+        userAnswers[currentQuestion] = selected.value;
+        if (selected.value === questions[currentQuestion].answer) score++;
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+          loadQuestion();
+        } else {
+          clearInterval(timer);
+          showResults();
+        }
+      }
+
+      function showResults(timeUp = false) {
+        document.getElementById("quiz").classList.add("hidden");
+        const resultDiv = document.getElementById("result");
+        resultDiv.classList.remove("hidden");
+
+        const percent = ((score / questions.length) * 100).toFixed(1);
+
+        let feedback = "";
+        if (percent == 100) {
+          feedback = "أنت بطل! برافو عليك 👏";
+        } else if (percent >= 80) {
+          feedback = "ممتاز! واضح إنك مذاكر كويس 💪";
+        } else if (percent >= 60) {
+          feedback = "كويس، بس محتاج تراجع شوية 🙂";
+        } else if (percent >= 40) {
+          feedback = "راجع الدروس تاني وحاول تركز أكتر 📚";
+        } else {
+          feedback = "ابدأ من الأول وراجع كويس، شد حيلك! 💡";
+        }
+
+        let warningMsg = "";
+        if (timeUp && currentQuestion < questions.length) {
+          warningMsg = `
+        <p style="color: red;">⏰ انتهى الوقت قبل إكمال جميع الأسئلة.</p>
+        <p>في المرة الجاية حاول تحل الأسئلة بشكل أسرع علشان تلحق تكمل 💡</p>
+      `;
+        }
+
+        let review = "<h3>مراجعة الإجابات:</h3><ul>";
+        questions.forEach((q, i) => {
+          const ua = userAnswers[i] || "لم يُجب";
+          const correct = q.answer;
+          const isCorrect = ua === correct;
+          review += `
+        <li>
+          <strong>السؤال ${i + 1}:</strong> ${q.question}<br>
+          إجابتك: <span class="${
+            isCorrect ? "correct-answer" : "wrong-answer"
+          }">${ua}</span><br>
+          الإجابة الصحيحة: <span class="correct-answer">${correct}</span><br>
+       
+        </li>
+      `;
+        });
+        review += "</ul>";
+
+        resultDiv.innerHTML = `
+      ${warningMsg}
+      <h2>نتيجة الاختبار</h2>
+      <p>${score} من ${questions.length} | النسبة: ${percent}%</p>
+      <p>${feedback}</p>
+      ${review}
+      <button id="retry-button" onclick="location.reload()">إعادة المحاولة</button>
+    `;
+      }
+
+      function startTimer() {
+        timer = setInterval(() => {
+          timeLeft--;
+          const minutes = Math.floor(timeLeft / 60);
+          const seconds = timeLeft % 60;
+          document.getElementById("timer").textContent = `${minutes}:${
+            seconds < 10 ? "0" : ""
+          }${seconds}`;
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            alert("انتهى الوقت!");
+            showResults(true);
+          }
+        }, 1000);
+      }
+
+      document
+        .getElementById("quizForm")
+        .addEventListener("keypress", function (event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            nextQuestion(event);
+          }
+        });
+      // دالة shuffle
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      function shuffleQuestions() {
+        shuffle(questions);
+        questions.forEach((q) => shuffle(q.options));
+      }
+    </script>
+  </body>
+</html>
